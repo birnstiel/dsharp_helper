@@ -148,7 +148,8 @@ def get_profile(disk):
         'r_as': r_as,
         'I_nu': I_nu,
         'I_nu_u': I_nu_u,
-        'I_nu_l': I_nu_l
+        'I_nu_l': I_nu_l,
+        'data': data
         }
 
 
