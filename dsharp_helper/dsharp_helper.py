@@ -170,7 +170,7 @@ def get_sed(disk):
     with open(fname) as fid:
         header = ''.join([line for line in fid if line.startswith('#')])
 
-    references = np.loadtxt(fname, usecols=np.invert(mask))
+    references = np.loadtxt(fname, usecols=4, dtype=str)
 
     return {
         'data': data,
