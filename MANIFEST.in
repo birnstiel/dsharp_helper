@@ -1,0 +1,4 @@
+include README.md
+include LICENSE
+include dsharp_helper/data/*.*
+include notebooks/*.ipynb
