@@ -12,10 +12,12 @@ import pandas as pd
 
 import matplotlib.pyplot as plt
 
+# create a pandas data frame of the source information
 
-dsharp_sources = pd.read_csv(
+sources = pd.read_csv(
     pkg_resources.resource_filename(__name__, os.path.join('data', 'DSHARP_sources.csv')),
     skipinitialspace=True)
+sources.index = pd.Index([name.replace(' ', '') for name in sources.index])
 
 
 def download_disk(fname, type='image', authenticate=False):
@@ -283,7 +285,7 @@ def plot_DHSARP_continuum(
     returns figure and axes handle
     """
     if fname is None:
-        source = dsharp_sources.loc[disk]
+        source = sources.loc[disk]
         dpc = dpc or source['distance [pc]']
         fname = get_datafile(disk)
 

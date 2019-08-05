@@ -1,4 +1,5 @@
 from .dsharp_helper import \
+    sources, \
     download_disk, \
     get_datafile, \
     I_nu_from_T_b, \
@@ -10,6 +11,7 @@ from .dsharp_helper import \
     plot_fits
 
 __all__ = [
+    'sources',
     'download_disk',
     'get_datafile',
     'I_nu_from_T_b',
