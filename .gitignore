@@ -2,3 +2,4 @@ __pycache__/
 *.egg-info
 dsharp_helper/data/*.fits
 dsharp_helper/data/*.txt
+.ipynb_checkpoints/
