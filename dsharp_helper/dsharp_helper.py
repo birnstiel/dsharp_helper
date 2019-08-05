@@ -6,6 +6,7 @@ from scipy import ndimage
 
 from astropy.visualization import AsinhStretch, ImageNormalize
 from astropy.io import fits
+from astropy import constants as c
 
 import pandas as pd
 
@@ -17,40 +18,37 @@ dsharp_sources = pd.read_csv(
     skipinitialspace=True)
 
 
-def download_disk(disk, suffix='continuum', type='image', authenticate=False):
+def download_disk(fname, type='image', authenticate=False):
     """
     Download the specified disk from the project website (password protected).
 
     Arguments:
     ----------
 
-    disk : str
-        disk name such as 'AS 209', ...
+    fname : str
+        file name, such as 'AS209_continuum.fits'
 
     Keywords:
     ---------
 
-    suffix : str
-        specifies the version of the image, possibilities include
-        'continuum' or 'CO'
+    type : str
+        specifies the type of file such as image, profile, or SED.
 
     authenticate : bool
         wether or not authentication should be used (asking for username/passw.)
     """
-
-    fname = '{}_{}'.format(disk.replace(' ', ''), suffix)
     if type == 'image':
-        url = 'https://almascience.eso.org/almadata/lp/DSHARP/images/{}.fits'
+        url = 'https://almascience.eso.org/almadata/lp/DSHARP/images/' + fname
     elif type == 'profile':
-        url = 'https://almascience.eso.org/almadata/lp/DSHARP/profiles/{}.profile.txt'
+        url = 'https://almascience.eso.org/almadata/lp/DSHARP/profiles/' + fname
     elif type == 'SED':
-        url = 'https://almascience.eso.org/almadata/lp/DSHARP/SEDs/{}.SED.txt'
+        url = 'https://almascience.eso.org/almadata/lp/DSHARP/SEDs/' + fname
     else:
         raise ValueError('type must be image, profile, or SED!')
 
-    url = url.format(fname)
+    fullpath = pkg_resources.resource_filename(__name__, os.path.join('data', fname))
 
-    if not os.path.isfile(fname):
+    if not os.path.isfile(fullpath):
         import requests
         import getpass
 
@@ -63,8 +61,6 @@ def download_disk(disk, suffix='continuum', type='image', authenticate=False):
 
         print('Downloading file \'{}\' ... '.format(fname), end='', flush=True)
 
-        fullpath = pkg_resources.resource_filename(__name__, os.path.join('data', fname))
-
         with open(fullpath, 'wb') as f:
             for chunk in req.iter_content(chunk_size=1024):
                 if chunk:
@@ -74,8 +70,173 @@ def download_disk(disk, suffix='continuum', type='image', authenticate=False):
         print('file already exists, will not download: {}'.format(fname))
 
 
-def plot_DHSARP_disk(
-        disk='HD 163296', suffix='script', fname=None, cmap='inferno', dpc=None,
+def get_datafile(disk, suffix='continuum', type='image'):
+    """
+    Get a path to the local data file, download it if it's not present.
+
+    Arguments:
+    ----------
+
+    disk : str
+        disk name such as 'AS 209', ...
+
+    Keywords:
+    ---------
+
+    suffix : str
+        specifies the version of the image, possibilities include
+        'continuum', 'CO'
+
+    type : str
+        can be 'profile', 'image', or 'SED'
+    """
+
+    disk_name = disk.replace(' ', '')
+    if type == 'image':
+        fname = '{}_{}.fits'.format(disk_name, suffix)
+    elif type == 'profile':
+        fname = '{}.profile.txt'.format(disk_name)
+    elif type == 'SED':
+        fname = '{}.SED.txt'.format(disk_name)
+    else:
+        raise ValueError('type must be image, profile, or SED!')
+
+    fullpath = pkg_resources.resource_filename(__name__, os.path.join('data', fname))
+
+    if not os.path.isfile(fullpath):
+        download_disk(fname, type=type)
+
+    return fullpath
+
+
+def I_nu_from_T_b(T_b, lam_obs=0.125):
+    "Calculate Intensity from brightness temperature"
+    c_light = c.c.cgs.value
+    nu_obs  = c_light / lam_obs
+    return 2 * nu_obs**2 * c.k_B.cgs.value * T_b / c_light**2
+
+
+def get_profile(disk):
+    """
+    Parameters:
+    ----------
+
+    disk : str
+        name of disk
+
+    """
+    fname = get_datafile(disk, type='profile')
+    data = np.loadtxt(fname)
+
+    # radius in arcseconds
+
+    r_as = data[:, 1]
+
+    # intensity in brightness temperature
+
+    T_b   = data[:, 4]
+    dT_b  = data[:, 5]  # uncertainty on T_b
+
+    # convert to intensity in CGS
+    I_nu    = I_nu_from_T_b(T_b)
+    I_nu_u = I_nu_from_T_b(T_b + dT_b)
+    I_nu_l = I_nu_from_T_b(T_b - dT_b)
+
+    return {
+        'r_as': r_as,
+        'I_nu': I_nu,
+        'I_nu_u': I_nu_u,
+        'I_nu_l': I_nu_l
+        }
+
+
+def get_sed(disk):
+    """
+    Parameters:
+    ----------
+
+    disk : str
+        name of disk
+
+    """
+    fname = get_datafile(disk, type='SED')
+
+    mask = np.ones(5, dtype=bool)
+    mask[-1] = False
+    data = np.loadtxt(fname, usecols=np.arange(4))
+
+    with open(fname) as fid:
+        header = ''.join([line for line in fid if line.startswith('#')])
+
+    references = np.loadtxt(fname, usecols=np.invert(mask))
+
+    return {
+        'data': data,
+        'header': header,
+        'references': references
+        }
+
+
+def plot_profile(disk):
+    """Plot DSHARP radial profile.
+
+    Parameters
+    ----------
+    disk : str
+        name of disk
+
+    Returns
+    -------
+        Returns figure and axes object
+    """
+    data = get_profile(disk)
+
+    r_as = data['r_as']
+    I_nu = data['I_nu']
+    I_nu_u = data['I_nu_u']
+    I_nu_l = data['I_nu_l']
+
+    f, ax = plt.subplots()
+    ax.semilogy(r_as, I_nu)
+    ax.fill_between(r_as, I_nu_l, I_nu_u, color='r', alpha=0.5)
+    ax.set_ylim(0.5 * I_nu.min(), 1.5 * I_nu.max())
+    ax.set_xlabel(r'radius [arcsec]')
+    ax.set_ylabel(r'$I_\nu$ [erg / (s cm$^2$ Hz sr)]')
+    return f, ax
+
+
+def plot_sed(disk):
+    """Plot SED of DSHARP disk.
+
+    Parameters
+    ----------
+    disk : str
+        name of disk
+
+    Returns
+    -------
+        Returns figure and axes object
+    """
+    data = get_sed(disk)['data']
+
+    lam_mic = data[:, 0]
+    flux_dens = data[:, 1]
+    df_stat = data[:, 2]
+    df_sys = flux_dens * data[:, 3]
+
+    error = (df_stat**2 + df_sys**2)**0.5
+
+    f, ax = plt.subplots()
+    ax.errorbar(lam_mic, flux_dens, yerr=error, ls='', marker='o', barsabove=True)
+    ax.set_xscale('log')
+    ax.set_yscale('log')
+    ax.set_xlabel(r'wavelength [micron]')
+    ax.set_ylabel(r'$F_\nu$ [Jy]')
+    return f, ax
+
+
+def plot_DHSARP_continuum(
+        disk='HD 163296', fname=None, cmap='inferno', dpc=None,
         ax=None, range=200, p0=[0, 0], **kwargs):
     """
     Plot the specified disk where the version is given by the suffix
@@ -90,8 +251,7 @@ def plot_DHSARP_disk(
     ---------
 
     suffix : str
-        specifies the version of the image, possibilities include
-        'taper', 'hires', 'script'
+        'continuum'
 
     fname : str
         to set a specific, possibly non-DSHARP filename
@@ -113,7 +273,7 @@ def plot_DHSARP_disk(
         what's passed to pcolormesh as cmap
 
     title : None | string
-        if given, overwrites title plottet in the figure, which defaults to
+        if given, overwrites title plotted in the figure, which defaults to
         the name of the disk
 
     Other keywords are passed to plot_fits
@@ -124,19 +284,8 @@ def plot_DHSARP_disk(
     """
     if fname is None:
         source = dsharp_sources.loc[disk]
-        fname = '{}_{}_image.fits'.format(disk.replace(' ', ''), suffix)
-        if not os.path.isfile(fname):
-            print('no file {} was found'.format(fname))
-            yn = ''
-            while yn not in ['y', 'n']:
-                yn = input('download it [y/n]: ').lower()
-            if yn == 'y':
-                download_disk(disk.replace(' ', ''), suffix=suffix)
-            else:
-                print('quitting')
-                return
-
         dpc = dpc or source['distance [pc]']
+        fname = get_datafile(disk)
 
     else:
         while dpc is None:

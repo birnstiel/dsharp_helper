@@ -31,6 +31,7 @@ if __name__ == "__main__":
             package_dir={PACKAGENAME: 'dsharp_helper'},
             package_data={PACKAGENAME: [
                 'data/*.*',
+                'notebooks/*.ipynb',
                 ]},
             include_package_data=True,
             install_requires=['scipy', 'numpy', 'matplotlib', 'astropy', 'pandas'],
