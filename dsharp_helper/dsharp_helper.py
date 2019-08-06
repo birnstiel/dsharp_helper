@@ -20,6 +20,34 @@ sources = pd.read_csv(
 sources.index = pd.Index([name.replace(' ', '') for name in sources.index])
 
 
+def purge_data(disks=None):
+    """Remove the downloaded DSHARP data files from the package.
+
+    Keywords:
+    ---------
+    disks : None | str | list
+        can be None, then all are removed
+        can be a str, then the data of that disk is removed
+        can be a list of str, then the data for those disks is removed
+    """
+    if disks is None:
+        disks = [k for k in sources.index]
+    else:
+        if type(disks) == str:
+            disks = [disks]
+        elif type(disks) != list:
+            raise TypeError('disks must be None or a disk name (str) or a list of those')
+
+    for disk in disks:
+        disk = disk.replace(' ', '')
+        for fname in ['{}_continuum.fits', '{}_CO.fits', '{}.profile.txt', '{}.SED.txt']:
+            fname = fname.format(disk)
+            fullpath = pkg_resources.resource_filename(__name__, os.path.join('data', fname))
+            if os.path.isfile(fullpath):
+                print('Deleting {}'.format(fname))
+                os.unlink(fullpath)
+
+
 def download_disk(fname, type='image', authenticate=False):
     """
     Download the specified disk from the project website (password protected).
