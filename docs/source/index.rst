@@ -3,14 +3,16 @@
    You can adapt this file completely to your liking, but it should at least
    contain the root `toctree` directive.
 
-Welcome to dsharp_helper's documentation!
-=========================================
+Documentation of ``dsharp_helper``
+==================================
+
 
 .. toctree::
    :maxdepth: 2
-   :caption: Contents:
 
-
+   installation
+   notebooks/get_started
+   module_api
 
 Indices and tables
 ==================

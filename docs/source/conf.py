@@ -20,8 +20,8 @@ sys.path.insert(0, os.path.abspath('../..'))
 # -- Project information -----------------------------------------------------
 
 project = 'dsharp_helper'
-copyright = '2019, Til Birnstiel & DSHARP collaboration'
-author = 'Til Birnstiel & DSHARP collaboration'
+copyright = '2019, Til Birnstiel & the DSHARP collaboration'
+author = 'Til Birnstiel & the DSHARP collaboration'
 
 # The short X.Y version
 version = ''
@@ -43,7 +43,9 @@ extensions = [
     'sphinx.ext.coverage',
     'sphinx.ext.mathjax',
     'sphinx.ext.viewcode',
-]
+    'sphinx.ext.napoleon',
+    'nbsphinx'
+    ]
 
 # Add any paths that contain templates here, relative to this directory.
 templates_path = ['_templates']
@@ -67,7 +69,7 @@ language = None
 # List of patterns, relative to source directory, that match files and
 # directories to ignore when looking for source files.
 # This pattern also affects html_static_path and html_extra_path.
-exclude_patterns = []
+exclude_patterns = ['**.ipynb_checkpoints']
 
 # The name of the Pygments (syntax highlighting) style to use.
 pygments_style = None
@@ -78,7 +80,7 @@ pygments_style = None
 # The theme to use for HTML and HTML Help pages.  See the documentation for
 # a list of builtin themes.
 #
-html_theme = 'alabaster'
+html_theme = 'sphinx_rtd_theme'
 
 # Theme options are theme-specific and customize the look and feel of a theme
 # further.  For a list of options available for each theme, see the
@@ -126,15 +128,15 @@ latex_elements = {
     # Latex figure (float) alignment
     #
     # 'figure_align': 'htbp',
-}
+    }
 
 # Grouping the document tree into LaTeX files. List of tuples
 # (source start file, target name, title,
 #  author, documentclass [howto, manual, or own class]).
 latex_documents = [
     (master_doc, 'dsharp_helper.tex', 'dsharp\\_helper Documentation',
-     'Til Birnstiel \\& DSHARP collaboration', 'manual'),
-]
+     'Til Birnstiel \\& the DSHARP collaboration', 'manual'),
+    ]
 
 
 # -- Options for manual page output ------------------------------------------
@@ -143,8 +145,8 @@ latex_documents = [
 # (source start file, name, description, authors, manual section).
 man_pages = [
     (master_doc, 'dsharp_helper', 'dsharp_helper Documentation',
-     [author], 1)
-]
+        [author], 1)
+    ]
 
 
 # -- Options for Texinfo output ----------------------------------------------
@@ -154,9 +156,9 @@ man_pages = [
 #  dir menu entry, description, category)
 texinfo_documents = [
     (master_doc, 'dsharp_helper', 'dsharp_helper Documentation',
-     author, 'dsharp_helper', 'One line description of project.',
-     'Miscellaneous'),
-]
+        author, 'dsharp_helper', 'One line description of project.',
+        'Miscellaneous'),
+    ]
 
 
 # -- Options for Epub output -------------------------------------------------

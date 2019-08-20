@@ -12,10 +12,10 @@ Plotting the continuum, the radial profile of the continuum, and the SED of a di
     dh.plot_profile(disk)
     dh.plot_sed(disk)
 
-<img width="30%" src=notebooks/IMLup_cont.png>
-<img width="30%" src=notebooks/IMLup_prof.png>
-<img width="30%" src=notebooks/IMLup_sed.png>
+<img width="30%" src=docs/source/notebooks/IMLup_cont.png>
+<img width="30%" src=docs/source/notebooks/IMLup_prof.png>
+<img width="30%" src=docs/source/notebooks/IMLup_sed.png>
 
 <br />
 
-Furthermore, the information on the sources is available as `dh.sources`. See also the [notebooks folder](notebooks/).
+Furthermore, the information on the sources is available as `dh.sources`. See also the [notebooks folder](docs/source/notebooks/).
