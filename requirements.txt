@@ -1,4 +1,4 @@
-python=3.6
+python==3.6
 jupyter
 scipy
 numpy
@@ -7,3 +7,4 @@ astropy
 pandas
 sphinx
 nbsphinx
+sphinx_rtd_theme
