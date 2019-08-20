@@ -1,4 +1,7 @@
 include README.md
 include LICENSE
 include dsharp_helper/data/*.*
-include notebooks/*.ipynb
+include docs/source/notebooks/*.ipynb
+include docs/make.bat
+include docs/Makefile
+include docs/source/*.*

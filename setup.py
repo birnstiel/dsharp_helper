@@ -1,7 +1,7 @@
 """
 Setup file for package `dsharp_helper`.
 """
-import setuptools # noqa
+import setuptools  # noqa
 # from numpy.distutils.core import Extension
 import pathlib
 import warnings
@@ -34,7 +34,14 @@ if __name__ == "__main__":
                 'notebooks/*.ipynb',
                 ]},
             include_package_data=True,
-            install_requires=['scipy', 'numpy', 'matplotlib', 'astropy', 'pandas'],
+            install_requires=[
+                'scipy',
+                'numpy',
+                'matplotlib',
+                'astropy',
+                'pandas',
+                'sphinx',
+                'nbsphinx'],
             zip_safe=False,
             ext_modules=extensions
             )
