@@ -1,3 +1,5 @@
+[![Documentation Status](https://readthedocs.org/projects/dsharp-helper/badge/?version=latest)](https://dsharp-helper.readthedocs.io/en/latest/?badge=latest)
+
 # DSHARP Helper
 
 Helps to downloading, accessing, and plotting of DSHARP data. The same regulations as in the [official data release](https://almascience.eso.org/almadata/lp/DSHARP/) apply with regards to citations.
