@@ -344,7 +344,7 @@ def plot_fits(
         fname, ax=None, cmap='inferno', range=None, p0=[0, 0], pixel_size_x=1,
         pixel_size_y=1, dpc=None, vmin=None, vmax=None, rsqaure=False,
         title=None, coronagraph_mask=None, fct='pcolormesh', beam=None,
-        autoshift=False):
+        autoshift=False, PA=None):
     """
     fname : float
         path to file
@@ -393,7 +393,11 @@ def plot_fits(
 
     autoshift : bool
         to put the brightest pixel in the center
+
+    PA : None | float
+        if float: rotate by this amount
     """
+    from scipy.ndimage import rotate
     if ax is None:
         fig, ax = plt.subplots()
     else:
@@ -401,9 +405,13 @@ def plot_fits(
 
     hdulist = fits.open(fname)
     Snu = np.squeeze(hdulist[0].data)
+    Snu[np.isnan(Snu)] = 0.0
 
-    x = np.arange(Snu.shape[0]) * abs(pixel_size_x)  # in mas
-    y = np.arange(Snu.shape[1]) * abs(pixel_size_y)  # in mas
+    if PA is not None:
+        Snu = rotate(Snu, PA, reshape=False, mode='constant', cval=0.0)
+
+    x = np.arange(Snu.shape[0], dtype=float) * abs(pixel_size_x)  # in mas
+    y = np.arange(Snu.shape[1], dtype=float) * abs(pixel_size_y)  # in mas
 
     if dpc is not None:
         x *= dpc * 1e-3
