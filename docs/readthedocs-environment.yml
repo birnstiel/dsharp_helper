@@ -14,3 +14,4 @@ dependencies:
   - pandas
   - pip:
     - nbsphinx
+    - git+https://github.com/birnstiel/dsharp_helper.git@master
