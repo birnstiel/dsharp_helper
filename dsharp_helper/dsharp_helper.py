@@ -142,7 +142,7 @@ def get_datafile(disk, suffix='continuum', type='image'):
 def I_nu_from_T_b(T_b, lam_obs=0.125):
     "Calculate Intensity from brightness temperature"
     c_light = c.c.cgs.value
-    nu_obs  = c_light / lam_obs
+    nu_obs = c_light / lam_obs
     return 2 * nu_obs**2 * c.k_B.cgs.value * T_b / c_light**2
 
 
@@ -164,11 +164,11 @@ def get_profile(disk):
 
     # intensity in brightness temperature
 
-    T_b   = data[:, 4]
-    dT_b  = data[:, 5]  # uncertainty on T_b
+    T_b = data[:, 4]
+    dT_b = data[:, 5]  # uncertainty on T_b
 
     # convert to intensity in CGS
-    I_nu    = I_nu_from_T_b(T_b)
+    I_nu = I_nu_from_T_b(T_b)
     I_nu_u = I_nu_from_T_b(T_b + dT_b)
     I_nu_l = I_nu_from_T_b(T_b - dT_b)
 
@@ -178,7 +178,7 @@ def get_profile(disk):
         'I_nu_u': I_nu_u,
         'I_nu_l': I_nu_l,
         'data': data
-        }
+    }
 
 
 def get_sed(disk):
@@ -205,7 +205,7 @@ def get_sed(disk):
         'data': data,
         'header': header,
         'references': references
-        }
+    }
 
 
 def plot_profile(disk):
@@ -457,7 +457,7 @@ def plot_fits(
     getattr(ax, fct)(
         -x, y, Snu, cmap=cmap, norm=norm, rasterized=True,
         # edgecolor=(1.0, 1.0, 1.0, 0.3), linewidth=0.0015625
-        )
+    )
 
     ax.set_aspect('equal')
     if dpc is None:
