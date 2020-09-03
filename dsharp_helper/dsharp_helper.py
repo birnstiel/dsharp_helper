@@ -4,7 +4,7 @@ import pkg_resources
 
 from scipy import ndimage
 
-from astropy.visualization import AsinhStretch, ImageNormalize
+from astropy.visualization import AsinhStretch, ImageNormalize, MinMaxInterval
 from astropy.io import fits
 from astropy import constants as c
 
@@ -341,10 +341,10 @@ def plot_DHSARP_continuum(
 
 
 def plot_fits(
-        fname, ax=None, cmap='inferno', range=None, p0=[0, 0], pixel_size_x=1,
-        pixel_size_y=1, dpc=None, vmin=None, vmax=None, rsqaure=False,
+        fname, ax=None, cmap='inferno', range=None, p0=[0, 0], pixel_size_x=None,
+        pixel_size_y=None, dpc=None, vmin=None, vmax=None, rsqaure=False,
         title=None, coronagraph_mask=None, fct='pcolormesh', beam=None,
-        autoshift=False, PA=None):
+        autoshift=False, PA=None, stretch=AsinhStretch(), image_fct=None):
     """
     fname : float
         path to file
@@ -364,8 +364,9 @@ def plot_fits(
     p0 : list of two floats
         where the center is located in mas
 
-    pixel_size : float
+    pixel_size : float | None
         size of a pixel in mas
+        set to None to try and read it from the fits file
 
     dpc : float
         distance in parsec
@@ -396,6 +397,14 @@ def plot_fits(
 
     PA : None | float
         if float: rotate by this amount
+
+    stretch : astropy.visualization.BaseStretch instance
+        use LinearStretch for linear scaling, default for the
+        DSHARP images is AsinhStretch
+
+    image_fct : None | callable
+        pass a function with signature fct(x, y, image) that will be called
+        to process the image.
     """
     from scipy.ndimage import rotate
     if ax is None:
@@ -404,8 +413,20 @@ def plot_fits(
         fig = ax.figure
 
     hdulist = fits.open(fname)
+    header = hdulist[0].header
     Snu = np.squeeze(hdulist[0].data)
     Snu[np.isnan(Snu)] = 0.0
+
+    if pixel_size_x is None:
+        if 'CDELT1' in header:
+            pixel_size_x = header['CDELT1'] * 3600. * 1e3
+        else:
+            pixel_size_x = 1
+    if pixel_size_y is None:
+        if 'CDELT2' in header:
+            pixel_size_y = header['CDELT2'] * 3600. * 1e3
+        else:
+            pixel_size_y = 1
 
     if PA is not None:
         Snu = rotate(Snu, PA, reshape=False, mode='constant', cval=0.0)
@@ -447,12 +468,15 @@ def plot_fits(
 
     print('{}: vmin = {:.2g}, vmax = {:.2g}'.format(title, vmin, vmax))
 
-    norm = ImageNormalize(vmin=vmin, vmax=vmax, stretch=AsinhStretch())
+    norm = ImageNormalize(vmin=vmin, vmax=vmax, stretch=stretch)
 
     if beam is not None:
         print('beam = {}'.format(beam))
         sigma = beam / (2 * np.sqrt(2 * np.log(2)))
         Snu = ndimage.gaussian_filter(Snu, sigma)
+
+    if image_fct is not None:
+        Snu = image_fct(x, y, Snu)
 
     getattr(ax, fct)(
         -x, y, Snu, cmap=cmap, norm=norm, rasterized=True,
