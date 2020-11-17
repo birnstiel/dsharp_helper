@@ -3,8 +3,9 @@ import numpy as np
 import pkg_resources
 
 from scipy import ndimage
+from scipy.interpolate import interp2d
 
-from astropy.visualization import AsinhStretch, ImageNormalize, MinMaxInterval
+from astropy.visualization import AsinhStretch, ImageNormalize
 from astropy.io import fits
 from astropy import constants as c
 
@@ -147,7 +148,11 @@ def I_nu_from_T_b(T_b, lam_obs=0.125):
 
 
 def get_profile(disk):
-    """
+    """Get the dsharp radial profile.
+
+    In the original data release, the profiles calculated the grid in
+    arcseconds incorrectly.
+
     Parameters:
     ----------
 
@@ -158,9 +163,12 @@ def get_profile(disk):
     fname = get_datafile(disk, type='profile')
     data = np.loadtxt(fname)
 
-    # radius in arcseconds
+    # radius in au
 
-    r_as = data[:, 1]
+    r_au = data[:, 0]
+
+    # with the correct radius in au, we can fix the incorrect radius in arcsec
+    r_as = r_au / sources.loc[disk]['distance [pc]']
 
     # intensity in brightness temperature
 
@@ -342,7 +350,7 @@ def plot_DHSARP_continuum(
 
 def plot_fits(
         fname, ax=None, cmap='inferno', range=None, p0=[0, 0], pixel_size_x=None,
-        pixel_size_y=None, dpc=None, vmin=None, vmax=None, rsqaure=False,
+        pixel_size_y=None, dpc=None, vmin=None, vmax=None, rsqaure=False, n_up=None,
         title=None, coronagraph_mask=None, fct='pcolormesh', beam=None,
         autoshift=False, PA=None, stretch=AsinhStretch(), image_fct=None):
     """
@@ -371,11 +379,15 @@ def plot_fits(
     dpc : float
         distance in parsec
 
-    vmin, vmax : float
+    vmin, vmax : None | float
         which lower and upper bound to use
+        will figure something it out if  `None`
 
     rsquare : bool
         if true, multiply the intensity with r**2
+
+    n_up : None | int
+        if int: upscale the image to that scale
 
     title : str
         title to plot in top left corner
@@ -460,11 +472,21 @@ def plot_fits(
         y = y[iy0:iy1 + 1]
         Snu = Snu[iy0:iy1 + 1, ix0:ix1 + 1]
 
+    if n_up is not None:
+        print(f'scaling from {Snu.shape} to ({n_up},{n_up})')
+
+        f = interp2d(x, y, Snu)
+
+        x = np.linspace(x[0], x[-1], n_up)
+        y = np.linspace(y[0], y[-1], n_up)
+        Snu = np.maximum(0.0, f(x, y))
+
     std = Snu[:20, :20].std()
     if vmin is None:
         vmin = 1.5 * std
     if vmax is None:
-        vmax = 100 * std  # 0.75 * Snu.max()
+        # vmax = 100 * std
+        vmax = 0.75 * Snu.max()
 
     print('{}: vmin = {:.2g}, vmax = {:.2g}'.format(title, vmin, vmax))
 
