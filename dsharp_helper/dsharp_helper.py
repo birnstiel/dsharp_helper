@@ -101,7 +101,7 @@ def download_disk(fname, type='image', authenticate=False):
         print('file already exists, will not download: {}'.format(fname))
 
 
-def get_datafile(disk, suffix='continuum', type='image'):
+def get_datafile(disk, suffix='continuum', type='image', side='N'):
     """
     Get a path to the local data file, download it if it's not present.
 
@@ -126,7 +126,10 @@ def get_datafile(disk, suffix='continuum', type='image'):
     if type == 'image':
         fname = '{}_{}.fits'.format(disk_name, suffix)
     elif type == 'profile':
-        fname = '{}.profile.txt'.format(disk_name)
+        if disk_name == 'AS205':
+            fname = '{}_{}.profile.txt'.format(disk_name, side)
+        else:
+            fname = '{}.profile.txt'.format(disk_name)
     elif type == 'SED':
         fname = '{}.SED.txt'.format(disk_name)
     else:
@@ -147,7 +150,7 @@ def I_nu_from_T_b(T_b, lam_obs=0.125):
     return 2 * nu_obs**2 * c.k_B.cgs.value * T_b / c_light**2
 
 
-def get_profile(disk):
+def get_profile(disk, side='N'):
     """Get the dsharp radial profile.
 
     In the original data release, the profiles calculated the grid in
